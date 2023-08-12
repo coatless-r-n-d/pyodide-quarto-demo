@@ -1,0 +1,175 @@
+---
+title: "Pyodide with Quarto HTML Standalone Document Proof of Concept"
+subtitle: "Experiments with an Interactive Quarto Document using Pyodide v0.24.3"
+author: "JJB"
+engine: knitr
+format:
+    html: 
+      toc: true
+editor: source
+---
+
+# Demo
+
+## Background
+
+The purpose of this document is to explore the [pyodide](https://pyodide.org/en/stable/) WebAssembly interface to power interactive Quarto documents.
+
+## Setup 
+
+
+```{=html}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css">
+<style>
+  .CodeMirror pre {
+    background-color: unset !important;
+  }
+  .btn-pyodide {
+    background-color: #EEEEEE;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/python/python.js"></script>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+
+<script type="module">
+  globalThis.pyodide = await loadPyodide();
+  document.querySelectorAll(".btn-pyodide").forEach((btn) => {
+    btn.innerText = "Run code";
+    btn.disabled = false;
+  });
+  globalThis.global_pyodide_run_counter = 0;
+</script>
+```
+
+```{r}
+#| results: asis
+#| echo: false
+pyodide_counter = 0
+
+pyodide_editor = function(code = I(encodeString(code, quote = '`')), width, height) { 
+pyodide_counter <<- pyodide_counter + 1
+
+output = glue::glue('
+<button class="btn btn-default btn-pyodide" disabled type="button"  id="pyodide-run-button-{{ pyodide_counter }}">Loading pyodide...</button>
+<div id="pyodide-editor-{{ pyodide_counter }}"></div>
+<div id="pyodide-code-output-{{ pyodide_counter }}"><pre style="visibility: hidden"></pre></div>
+<script type="module">
+  const runButton = document.getElementById("pyodide-run-button-{{ pyodide_counter }}");
+  const outputDiv = document.getElementById("pyodide-code-output-{{ pyodide_counter }}");
+  const editorDiv = document.getElementById("pyodide-editor-{{ pyodide_counter }}");
+
+  const editor = CodeMirror((elt) => {
+    elt.style.border = "1px solid #eee";
+    elt.style.height = "auto";
+    editorDiv.append(elt);
+  },{
+    value: {{code}},
+    lineNumbers: true,
+    mode: "python",
+    theme: "light default",
+    viewportMargin: Infinity,
+  });
+
+  function addToOutput(s) {
+    globalThis.global_pyodide_run_counter += 1;
+    return "[" + globalThis.global_pyodide_run_counter + "] " + s + "\\n";
+  }
+
+  runButton.onclick = async () => {
+    runButton.disabled = true;
+    let pyodide = await globalThis.pyodide;
+
+    let python_code = editor.getValue();
+
+    // Detect whether any Python package needs to be attached from
+    // the Python code prior to running it.
+    await pyodide.loadPackagesFromImports(python_code);
+
+    // Setup an output variable
+    let out;
+
+    // Try to execute the code, if it fails... Store the error
+    try {
+      let output = pyodide.runPython(python_code);
+      out = addToOutput(output);
+    } catch (err) {
+      out = addToOutput(err);
+    } finally {
+      outputDiv.innerHTML = "";
+      const pre = document.createElement("pre");
+      if (/\\S/.test(out)) {
+        const code = document.createElement("code");
+        code.innerText = out;
+        pre.appendChild(code);
+      } else {
+        pre.style.visibility = "hidden";
+      }
+      outputDiv.appendChild(pre);
+      runButton.disabled = false;
+    }
+  };
+
+  runButton.innerText = "Run code";
+  runButton.disabled = false;
+</script>
+', .open = "{{", .close = "}}")
+}
+```
+
+```{r}
+#| echo: false
+knitr::knit_engines$set(pyodide = function(options) {
+  code = paste(options$code, collapse = "\n")
+  w = knitr::opts_current$get('fig.width') * 72
+  h = knitr::opts_current$get('fig.height') * 72
+  options$results = 'asis'
+  
+  form = pyodide_editor(code = I(encodeString(code, quote = '`')), width = w, height = h)
+  
+  form
+}
+)
+```
+
+## Sample Calculations
+
+Let's start off with a quick calculation 
+
+```{pyodide}
+1 + 1
+```
+
+## Strings
+
+Viewing string data
+
+```{pyodide}
+greet = 'Hello'
+greet
+```
+
+## Retrieving prior objects
+
+Checking string length
+
+```{pyodide}
+len(greet)
+```
+
+Notice, we're able to track the run value of code.
+
+## Load a package
+
+```{pyodide}
+import pandas as pd
+
+df = pd.DataFrame({
+  'Name': ['JJB', 'H', 'Alex', 'Steve'],
+  'Age': [18, 25, 33, 42]
+})
+
+df
+```
