@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.4.506">
+<meta name="generator" content="quarto-1.4.510">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -53,7 +53,10 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#sample-calculations" id="toc-sample-calculations" class="nav-link" data-scroll-target="#sample-calculations">Sample Calculations</a></li>
   <li><a href="#strings" id="toc-strings" class="nav-link" data-scroll-target="#strings">Strings</a></li>
   <li><a href="#retrieving-prior-objects" id="toc-retrieving-prior-objects" class="nav-link" data-scroll-target="#retrieving-prior-objects">Retrieving prior objects</a></li>
+  <li><a href="#define-and-call-functions" id="toc-define-and-call-functions" class="nav-link" data-scroll-target="#define-and-call-functions">Define and Call Functions</a></li>
   <li><a href="#load-a-package" id="toc-load-a-package" class="nav-link" data-scroll-target="#load-a-package">Load a package</a></li>
+  <li><a href="#graphing" id="toc-graphing" class="nav-link" data-scroll-target="#graphing">Graphing</a></li>
+  <li><a href="#free-for-all" id="toc-free-for-all" class="nav-link" data-scroll-target="#free-for-all">Free-for-all</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -341,8 +344,9 @@ Loading pyodide…
 </div>
 <p>Notice, we’re able to track the run value of code.</p>
 </section>
-<section id="load-a-package" class="level2">
-<h2 class="anchored" data-anchor-id="load-a-package">Load a package</h2>
+<section id="define-and-call-functions" class="level2">
+<h2 class="anchored" data-anchor-id="define-and-call-functions">Define and Call Functions</h2>
+<p>Functions can be defined in one cell and called.</p>
 <div class="cell">
 <button class="btn btn-default btn-pyodide" disabled="" type="button" id="pyodide-run-button-4">
 Loading pyodide…
@@ -363,7 +367,325 @@ Loading pyodide…
     elt.style.height = "auto";
     editorDiv.append(elt);
   },{
+    value: `def square(x):\n    return x**2\n\nsquare(8)`,
+    lineNumbers: true,
+    mode: "python",
+    theme: "light default",
+    viewportMargin: Infinity,
+  });
+
+  function addToOutput(s) {
+    globalThis.global_pyodide_run_counter += 1;
+    return "[" + globalThis.global_pyodide_run_counter + "] " + s + "\n";
+  }
+
+  runButton.onclick = async () => {
+    runButton.disabled = true;
+    let pyodide = await globalThis.pyodide;
+
+    let python_code = editor.getValue();
+
+    // Detect whether any Python package needs to be attached from
+    // the Python code prior to running it.
+    await pyodide.loadPackagesFromImports(python_code);
+
+    // Setup an output variable
+    let out;
+
+    // Try to execute the code, if it fails... Store the error
+    try {
+      let output = pyodide.runPython(python_code);
+      out = addToOutput(output);
+    } catch (err) {
+      out = addToOutput(err);
+    } finally {
+      outputDiv.innerHTML = "";
+      const pre = document.createElement("pre");
+      if (/\S/.test(out)) {
+        const code = document.createElement("code");
+        code.innerText = out;
+        pre.appendChild(code);
+      } else {
+        pre.style.visibility = "hidden";
+      }
+      outputDiv.appendChild(pre);
+      runButton.disabled = false;
+    }
+  };
+
+  runButton.innerText = "Run code";
+  runButton.disabled = false;
+</script>
+</div>
+<p>Similarly, they persist to other cells.</p>
+<div class="cell">
+<button class="btn btn-default btn-pyodide" disabled="" type="button" id="pyodide-run-button-5">
+Loading pyodide…
+</button>
+<div id="pyodide-editor-5">
+
+</div>
+<div id="pyodide-code-output-5">
+<pre style="visibility: hidden"></pre>
+</div>
+<script type="module">
+  const runButton = document.getElementById("pyodide-run-button-5");
+  const outputDiv = document.getElementById("pyodide-code-output-5");
+  const editorDiv = document.getElementById("pyodide-editor-5");
+
+  const editor = CodeMirror((elt) => {
+    elt.style.border = "1px solid #eee";
+    elt.style.height = "auto";
+    editorDiv.append(elt);
+  },{
+    value: `num_list = [1, 2, 3]\n[square(num)for num in num_list]`,
+    lineNumbers: true,
+    mode: "python",
+    theme: "light default",
+    viewportMargin: Infinity,
+  });
+
+  function addToOutput(s) {
+    globalThis.global_pyodide_run_counter += 1;
+    return "[" + globalThis.global_pyodide_run_counter + "] " + s + "\n";
+  }
+
+  runButton.onclick = async () => {
+    runButton.disabled = true;
+    let pyodide = await globalThis.pyodide;
+
+    let python_code = editor.getValue();
+
+    // Detect whether any Python package needs to be attached from
+    // the Python code prior to running it.
+    await pyodide.loadPackagesFromImports(python_code);
+
+    // Setup an output variable
+    let out;
+
+    // Try to execute the code, if it fails... Store the error
+    try {
+      let output = pyodide.runPython(python_code);
+      out = addToOutput(output);
+    } catch (err) {
+      out = addToOutput(err);
+    } finally {
+      outputDiv.innerHTML = "";
+      const pre = document.createElement("pre");
+      if (/\S/.test(out)) {
+        const code = document.createElement("code");
+        code.innerText = out;
+        pre.appendChild(code);
+      } else {
+        pre.style.visibility = "hidden";
+      }
+      outputDiv.appendChild(pre);
+      runButton.disabled = false;
+    }
+  };
+
+  runButton.innerText = "Run code";
+  runButton.disabled = false;
+</script>
+</div>
+</section>
+<section id="load-a-package" class="level2">
+<h2 class="anchored" data-anchor-id="load-a-package">Load a package</h2>
+<p>We’ve enabled <em>dynamic</em> package detection to handle importing packages into the environment. The <em>dynamic</em> part comes from detecting whether a non-core Python package is used, installing, and, then, importing it.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Importing a package for the first time will require more time. Subsequent import statements will be resolve quicker.</p>
+</div>
+</div>
+<div class="cell">
+<button class="btn btn-default btn-pyodide" disabled="" type="button" id="pyodide-run-button-6">
+Loading pyodide…
+</button>
+<div id="pyodide-editor-6">
+
+</div>
+<div id="pyodide-code-output-6">
+<pre style="visibility: hidden"></pre>
+</div>
+<script type="module">
+  const runButton = document.getElementById("pyodide-run-button-6");
+  const outputDiv = document.getElementById("pyodide-code-output-6");
+  const editorDiv = document.getElementById("pyodide-editor-6");
+
+  const editor = CodeMirror((elt) => {
+    elt.style.border = "1px solid #eee";
+    elt.style.height = "auto";
+    editorDiv.append(elt);
+  },{
     value: `import pandas as pd\n\ndf = pd.DataFrame({\n  'Name': ['JJB', 'H', 'Alex', 'Steve'],\n  'Age': [18, 25, 33, 42]\n})\n\ndf`,
+    lineNumbers: true,
+    mode: "python",
+    theme: "light default",
+    viewportMargin: Infinity,
+  });
+
+  function addToOutput(s) {
+    globalThis.global_pyodide_run_counter += 1;
+    return "[" + globalThis.global_pyodide_run_counter + "] " + s + "\n";
+  }
+
+  runButton.onclick = async () => {
+    runButton.disabled = true;
+    let pyodide = await globalThis.pyodide;
+
+    let python_code = editor.getValue();
+
+    // Detect whether any Python package needs to be attached from
+    // the Python code prior to running it.
+    await pyodide.loadPackagesFromImports(python_code);
+
+    // Setup an output variable
+    let out;
+
+    // Try to execute the code, if it fails... Store the error
+    try {
+      let output = pyodide.runPython(python_code);
+      out = addToOutput(output);
+    } catch (err) {
+      out = addToOutput(err);
+    } finally {
+      outputDiv.innerHTML = "";
+      const pre = document.createElement("pre");
+      if (/\S/.test(out)) {
+        const code = document.createElement("code");
+        code.innerText = out;
+        pre.appendChild(code);
+      } else {
+        pre.style.visibility = "hidden";
+      }
+      outputDiv.appendChild(pre);
+      runButton.disabled = false;
+    }
+  };
+
+  runButton.innerText = "Run code";
+  runButton.disabled = false;
+</script>
+</div>
+<div class="cell">
+<button class="btn btn-default btn-pyodide" disabled="" type="button" id="pyodide-run-button-7">
+Loading pyodide…
+</button>
+<div id="pyodide-editor-7">
+
+</div>
+<div id="pyodide-code-output-7">
+<pre style="visibility: hidden"></pre>
+</div>
+<script type="module">
+  const runButton = document.getElementById("pyodide-run-button-7");
+  const outputDiv = document.getElementById("pyodide-code-output-7");
+  const editorDiv = document.getElementById("pyodide-editor-7");
+
+  const editor = CodeMirror((elt) => {
+    elt.style.border = "1px solid #eee";
+    elt.style.height = "auto";
+    editorDiv.append(elt);
+  },{
+    value: `import pandas as pd \n\ndf.Age`,
+    lineNumbers: true,
+    mode: "python",
+    theme: "light default",
+    viewportMargin: Infinity,
+  });
+
+  function addToOutput(s) {
+    globalThis.global_pyodide_run_counter += 1;
+    return "[" + globalThis.global_pyodide_run_counter + "] " + s + "\n";
+  }
+
+  runButton.onclick = async () => {
+    runButton.disabled = true;
+    let pyodide = await globalThis.pyodide;
+
+    let python_code = editor.getValue();
+
+    // Detect whether any Python package needs to be attached from
+    // the Python code prior to running it.
+    await pyodide.loadPackagesFromImports(python_code);
+
+    // Setup an output variable
+    let out;
+
+    // Try to execute the code, if it fails... Store the error
+    try {
+      let output = pyodide.runPython(python_code);
+      out = addToOutput(output);
+    } catch (err) {
+      out = addToOutput(err);
+    } finally {
+      outputDiv.innerHTML = "";
+      const pre = document.createElement("pre");
+      if (/\S/.test(out)) {
+        const code = document.createElement("code");
+        code.innerText = out;
+        pre.appendChild(code);
+      } else {
+        pre.style.visibility = "hidden";
+      }
+      outputDiv.appendChild(pre);
+      runButton.disabled = false;
+    }
+  };
+
+  runButton.innerText = "Run code";
+  runButton.disabled = false;
+</script>
+</div>
+</section>
+<section id="graphing" class="level2">
+<h2 class="anchored" data-anchor-id="graphing">Graphing</h2>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Graphing is not yet available.</p>
+</div>
+</div>
+</section>
+<section id="free-for-all" class="level2">
+<h2 class="anchored" data-anchor-id="free-for-all">Free-for-all</h2>
+<p>Feel free to explore adding your own Python code into this code cell. Note, you may also do the same with earlier cells.</p>
+<div class="cell">
+<button class="btn btn-default btn-pyodide" disabled="" type="button" id="pyodide-run-button-8">
+Loading pyodide…
+</button>
+<div id="pyodide-editor-8">
+
+</div>
+<div id="pyodide-code-output-8">
+<pre style="visibility: hidden"></pre>
+</div>
+<script type="module">
+  const runButton = document.getElementById("pyodide-run-button-8");
+  const outputDiv = document.getElementById("pyodide-code-output-8");
+  const editorDiv = document.getElementById("pyodide-editor-8");
+
+  const editor = CodeMirror((elt) => {
+    elt.style.border = "1px solid #eee";
+    elt.style.height = "auto";
+    editorDiv.append(elt);
+  },{
+    value: ``,
     lineNumbers: true,
     mode: "python",
     theme: "light default",
