@@ -161,7 +161,31 @@ len(greet)
 
 Notice, we're able to track the run value of code.
 
+## Define and Call Functions
+
+Functions can be defined in one cell and called. 
+
+```{pyodide}
+def square(x):
+    return x**2
+
+square(8)
+```
+
+Similarly, they persist to other cells.
+
+```{pyodide}
+num_list = [1, 2, 3]
+[square(num)for num in num_list]
+```
+
 ## Load a package
+
+We've enabled _dynamic_ package detection to handle importing packages into the environment. The _dynamic_ part comes from detecting whether a non-core Python package is used, installing, and, then, importing it.
+
+:::{.callout-note}
+Importing a package for the first time will require more time. Subsequent import statements will be resolve quicker.
+:::
 
 ```{pyodide}
 import pandas as pd
@@ -172,4 +196,24 @@ df = pd.DataFrame({
 })
 
 df
+```
+
+```{pyodide}
+import pandas as pd 
+
+df.Age
+```
+
+## Graphing
+
+:::{.callout-important}
+Graphing is not yet available.
+:::
+
+## Free-for-all
+
+Feel free to explore adding your own Python code into this code cell. Note, you may also do the same with earlier cells.
+
+```{pyodide}
+
 ```
